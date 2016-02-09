@@ -63,6 +63,11 @@ func (conn *Connection) CreateContact(c *Contact, dc DupCheck) error {
 	return err
 }
 
+func (conn *Connection) AddTagToContact(c Contact, t Tag) (result bool, err error) {
+	err = conn.client.Call("ContactService.addToGroup", []interface{}{conn.apiKey, c.Id, t.Id}, &result)
+	return
+}
+
 func (conn *Connection) SearchContacts(limit, page int, queryData Contact) (result []Contact, err error) {
 	selectedFields := getNamesFromStruct(queryData)
 	params := []interface{}{conn.apiKey, "Contact", limit, page, queryData, selectedFields}
@@ -101,6 +106,11 @@ func (conn *Connection) SearchTags(limit, page int, queryData Tag) (result []Tag
 func (conn *Connection) OptInEmail(email, reason string) (result bool, err error) {
 	params := []interface{}{conn.apiKey, email, reason}
 	err = conn.client.Call("APIEmailService.optIn", params, &result)
+	return
+}
+
+func (conn *Connection) GetEmailStatus(email string) (result int, err error) {
+	err = conn.client.Call("APIEmailService.getOptStatus", []interface{}{conn.apiKey, email}, &result)
 	return
 }
 
