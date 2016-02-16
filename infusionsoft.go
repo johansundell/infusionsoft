@@ -3,6 +3,7 @@ package infusionsoft
 
 import (
 	"reflect"
+	"strconv"
 
 	//"github.com/kolo/xmlrpc"
 	"github.com/johansundell/xmlrpc"
@@ -42,6 +43,12 @@ type Tag struct {
 	CategoryTagId  int    `xmlrpc:"GroupCategoryId"`
 	TagName        string `xmlrpc:"GroupName"`
 	TagDescription string `xmlrpc:"GroupDescription"`
+}
+
+type WebForm struct {
+	Id   int
+	Name string
+	Html string
 }
 
 func NewConnection(apiKey, url string) (Connection, error) {
@@ -112,6 +119,26 @@ func (conn *Connection) OptInEmail(email, reason string) (result bool, err error
 func (conn *Connection) GetEmailStatus(email string) (result int, err error) {
 	err = conn.client.Call("APIEmailService.getOptStatus", []interface{}{conn.apiKey, email}, &result)
 	return
+}
+
+func (conn *Connection) GetAllWebForms() (result []WebForm, err error) {
+	s := make(map[string]string)
+	err = conn.client.Call("WebFormService.getMap", []interface{}{conn.apiKey}, &s)
+	for k, v := range s {
+		i, err := strconv.Atoi(k)
+		if err == nil {
+			w := WebForm{Id: i, Name: v}
+			result = append(result, w)
+		}
+	}
+	return
+}
+
+func (conn *Connection) GetWebForm(w WebForm) (WebForm, error) {
+	s := ""
+	err := conn.client.Call("WebFormService.getHTML", []interface{}{conn.apiKey, w.Id}, &s)
+	w.Html = s
+	return w, err
 }
 
 func getNamesFromStruct(i interface{}) []string {
